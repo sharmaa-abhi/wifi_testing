@@ -2,12 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardHeader from "./new_ui_parts/DashboardHeader.jsx";
 import SpeedTiles from "./new_ui_parts/SpeedTiles.jsx";
 import MetaControls from "./new_ui_parts/MetaControls.jsx";
-import TestSettingsPanel from "./new_ui_parts/TestSettingsPanel.jsx";
 import LatencySummary from "./new_ui_parts/LatencySummary.jsx";
 import GaugeCenter from "./new_ui_parts/GaugeCenter.jsx";
 import ProviderInfoCard from "./new_ui_parts/ProviderInfoCard.jsx";
 import HistoryChartsSection from "./new_ui_parts/HistoryChartsSection.jsx";
 import NetworkDiagnosticsPanel from "./new_ui_parts/NetworkDiagnosticsPanel.jsx";
+import SettingsPage from "./new_ui_parts/SettingsPage.jsx";
+import AppsPage from "./new_ui_parts/AppsPage.jsx";
+import LearnPage from "./new_ui_parts/LearnPage.jsx";
+import DataPage from "./new_ui_parts/DataPage.jsx";
+import AboutPage from "./new_ui_parts/AboutPage.jsx";
 import { calcJitter } from "./new_ui_parts/formatters";
 import "./App.css";
 
@@ -16,8 +20,10 @@ const DEFAULT_SETTINGS = {
   testDurationSec: 30,
   maxGaugeSpeed: 500,
   historyLimit: 20,
-  autoSaveHistory: true
+  autoSaveHistory: true,
+  language: "English"
 };
+const LANGUAGE_OPTIONS = ["English", "Hindi", "Spanish", "French", "German"];
 const SETTINGS_KEY = "wifi_speedtest_settings_v1";
 const HISTORY_KEY = "wifi_speedtest_history_v1";
 
@@ -94,7 +100,8 @@ const readSettings = () => {
       testDurationSec: clamp(Number(parsed.testDurationSec) || DEFAULT_SETTINGS.testDurationSec, 10, 120),
       maxGaugeSpeed: clamp(Number(parsed.maxGaugeSpeed) || DEFAULT_SETTINGS.maxGaugeSpeed, 100, 2000),
       historyLimit: clamp(Number(parsed.historyLimit) || DEFAULT_SETTINGS.historyLimit, 5, 100),
-      autoSaveHistory: parsed.autoSaveHistory !== false
+      autoSaveHistory: parsed.autoSaveHistory !== false,
+      language: LANGUAGE_OPTIONS.includes(parsed.language) ? parsed.language : DEFAULT_SETTINGS.language
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -152,7 +159,7 @@ const App = () => {
   const [lastTested, setLastTested] = useState(null);
   const [history, setHistory] = useState(() => readHistory());
   const [settings, setSettings] = useState(() => readSettings());
-  const [showSettings, setShowSettings] = useState(false);
+  const [activeView, setActiveView] = useState("dashboard");
 
   const [packetLoss, setPacketLoss] = useState(0);
   const [loadLatency, setLoadLatency] = useState(0);
@@ -369,6 +376,10 @@ const App = () => {
   };
 
   const clearHistory = () => setHistory([]);
+  const resetDefaults = () => setSettings(DEFAULT_SETTINGS);
+  const openSettingsPage = () => setActiveView("settings");
+  const openDashboard = () => setActiveView("dashboard");
+  const openSection = (view) => setActiveView(view);
 
   const maxChartValue = Math.max(1, ...chartPoints.flatMap((entry) => [entry.download || 0, entry.upload || 0]));
 
@@ -531,67 +542,86 @@ const App = () => {
 
   return (
     <div className="app">
-      <DashboardHeader onToggleSettings={() => setShowSettings((prev) => !prev)} />
+      <DashboardHeader
+        onToggleSettings={openSettingsPage}
+        onNavigate={openSection}
+        activeView={activeView}
+        language={settings.language}
+      />
 
       <main className="main speedtest">
-        <SpeedTiles downloadSpeed={downloadSpeed} uploadSpeed={uploadSpeed} />
-
-        <MetaControls lastTested={lastTested} onToggleSettings={() => setShowSettings((prev) => !prev)} />
-
-        {showSettings && (
-          <TestSettingsPanel
+        {activeView === "settings" ? (
+          <SettingsPage
             settings={settings}
             setSettings={setSettings}
             updateNumericSetting={updateNumericSetting}
+            historyCount={history.length}
+            onClearHistory={clearHistory}
+            onResetDefaults={resetDefaults}
+            onBack={openDashboard}
           />
+        ) : activeView === "apps" ? (
+          <AppsPage onBack={openDashboard} />
+        ) : activeView === "learn" ? (
+          <LearnPage onBack={openDashboard} />
+        ) : activeView === "data" ? (
+          <DataPage history={history} onBack={openDashboard} />
+        ) : activeView === "about" ? (
+          <AboutPage onBack={openDashboard} />
+        ) : (
+          <>
+            <SpeedTiles downloadSpeed={downloadSpeed} uploadSpeed={uploadSpeed} />
+
+            <MetaControls lastTested={lastTested} onToggleSettings={openSettingsPage} />
+
+            <LatencySummary ping={ping} jitter={jitter} />
+
+            <section className="center-row">
+              <GaugeCenter
+                isLoading={isLoading}
+                speedForGauge={speedForGauge}
+                maxGaugeSpeed={settings.maxGaugeSpeed}
+                testSpeed={testSpeed}
+                downloadSpeed={downloadSpeed}
+              />
+              <ProviderInfoCard wifiInfo={wifiInfo} isLoading={isLoading} />
+            </section>
+
+            <NetworkDiagnosticsPanel
+              diagnostics={{
+                packetLoss,
+                loadLatency,
+                pingMin,
+                pingMax,
+                pingSpikes,
+                jitterGrade,
+                networkScore,
+                readinessLabel,
+                uploadBurst,
+                uploadSustained,
+                pageLoadMs
+              }}
+              serverComparison={serverComparison}
+              bandComparison={bandComparison}
+              onSaveBandSnapshot={saveBandSnapshot}
+              connectionStatus={connectionStatus}
+              connectionDrops={connectionDrops}
+              lastConnectionEvent={lastConnectionEvent}
+              consistencyScore={consistencyScore}
+              throttlingInsight={throttlingInsight}
+              troubleshootTips={troubleshootTips}
+            />
+
+            <HistoryChartsSection
+              history={history}
+              chartPoints={chartPoints}
+              maxChartValue={maxChartValue}
+              clearHistory={clearHistory}
+            />
+
+            {error && <div className="alert">{error}</div>}
+          </>
         )}
-
-        <LatencySummary ping={ping} jitter={jitter} />
-
-        <section className="center-row">
-          <GaugeCenter
-            isLoading={isLoading}
-            speedForGauge={speedForGauge}
-            maxGaugeSpeed={settings.maxGaugeSpeed}
-            testSpeed={testSpeed}
-            downloadSpeed={downloadSpeed}
-          />
-          <ProviderInfoCard wifiInfo={wifiInfo} isLoading={isLoading} />
-        </section>
-
-        <NetworkDiagnosticsPanel
-          diagnostics={{
-            packetLoss,
-            loadLatency,
-            pingMin,
-            pingMax,
-            pingSpikes,
-            jitterGrade,
-            networkScore,
-            readinessLabel,
-            uploadBurst,
-            uploadSustained,
-            pageLoadMs
-          }}
-          serverComparison={serverComparison}
-          bandComparison={bandComparison}
-          onSaveBandSnapshot={saveBandSnapshot}
-          connectionStatus={connectionStatus}
-          connectionDrops={connectionDrops}
-          lastConnectionEvent={lastConnectionEvent}
-          consistencyScore={consistencyScore}
-          throttlingInsight={throttlingInsight}
-          troubleshootTips={troubleshootTips}
-        />
-
-        <HistoryChartsSection
-          history={history}
-          chartPoints={chartPoints}
-          maxChartValue={maxChartValue}
-          clearHistory={clearHistory}
-        />
-
-        {error && <div className="alert">{error}</div>}
       </main>
     </div>
   );
