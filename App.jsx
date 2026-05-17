@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { FiWifi, FiZap, FiUpload, FiDownload, FiSettings } from "react-icons/fi";
 import SpeedGauge from "./SpeedGauge.jsx";
+import "./App.css";
 
 const DOWNLOAD_SIZES = [
   200000, 500000, 1000000, 2000000
 ];
+const TEST_DURATION_MS = 30000;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -66,8 +68,12 @@ const App = () => {
   const testDownload = async () => {
     let totalBits = 0;
     let totalSeconds = 0;
+    let index = 0;
+    const deadline = performance.now() + TEST_DURATION_MS * 0.6;
 
-    for (const size of DOWNLOAD_SIZES) {
+    while (performance.now() < deadline) {
+      const size = DOWNLOAD_SIZES[index % DOWNLOAD_SIZES.length];
+      index += 1;
       const url = `/speed/__down?bytes=${size}`;
       const start = performance.now();
       const response = await withTimeout(
@@ -88,39 +94,55 @@ const App = () => {
   const testUpload = async () => {
     const size = 600000;
     const data = new Uint8Array(size);
-    const start = performance.now();
+    const deadline = performance.now() + TEST_DURATION_MS * 0.3;
+    let totalBits = 0;
+    let totalSeconds = 0;
 
-    await withTimeout(
-      (signal) =>
-        fetch("/speed/__up", {
-          method: "POST",
-          body: data,
-          headers: {
-            "Content-Type": "application/octet-stream"
-          },
-          signal
-        }),
-      12000
-    );
+    while (performance.now() < deadline) {
+      const start = performance.now();
+      await withTimeout(
+        (signal) =>
+          fetch("/speed/__up", {
+            method: "POST",
+            body: data,
+            headers: {
+              "Content-Type": "application/octet-stream"
+            },
+            signal
+          }),
+        12000
+      );
+      const end = performance.now();
+      totalBits += data.byteLength * 8;
+      totalSeconds += (end - start) / 1000;
+    }
 
-    const end = performance.now();
-    const mbps = (data.byteLength * 8) / ((end - start) / 1000) / 1000000;
+    const mbps = totalBits / totalSeconds / 1000000;
     return mbps;
   };
 
   const testPing = async () => {
-    const start = performance.now();
-    await withTimeout(
-      (signal) =>
-        fetch("/speed/__down?bytes=1", {
-          method: "HEAD",
-          cache: "no-store",
-          signal
-        }),
-      8000
-    );
-    const end = performance.now();
-    return end - start;
+    const deadline = performance.now() + TEST_DURATION_MS * 0.1;
+    const samples = [];
+
+    while (performance.now() < deadline) {
+      const start = performance.now();
+      await withTimeout(
+        (signal) =>
+          fetch("/speed/__down?bytes=1", {
+            method: "HEAD",
+            cache: "no-store",
+            signal
+          }),
+        8000
+      );
+      const end = performance.now();
+      samples.push(end - start);
+    }
+
+    if (samples.length === 0) return 0;
+    const sum = samples.reduce((acc, value) => acc + value, 0);
+    return sum / samples.length;
   };
 
   const testSpeed = useCallback(async () => {
