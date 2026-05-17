@@ -268,6 +268,57 @@ body {
   color: var(--muted);
 }
 
+.meta-pill-button {
+  background: transparent;
+  cursor: pointer;
+}
+
+.settings-panel {
+  background: rgba(12, 24, 35, 0.75);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(90, 190, 255, 0.2);
+  padding: 1.2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-panel h3 {
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.settings-grid label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.settings-grid input[type="number"] {
+  background: rgba(7, 18, 30, 0.85);
+  border: 1px solid rgba(90, 190, 255, 0.25);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+}
+
+.checkbox-field {
+  align-content: center;
+}
+
+.checkbox-field input {
+  margin-right: 0.5rem;
+}
+
 .meta-right {
   display: grid;
   gap: 0.2rem;
@@ -356,6 +407,168 @@ body {
   gap: 1rem;
 }
 
+.history-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-header h3 {
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.chart-card {
+  background: rgba(12, 24, 35, 0.75);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(90, 190, 255, 0.2);
+  padding: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.chart-card p {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.bar-chart {
+  height: 120px;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.bar-group {
+  height: 100%;
+  display: flex;
+  align-items: end;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  min-height: 2px;
+}
+
+.bar.down {
+  background: linear-gradient(180deg, rgba(78, 226, 166, 0.95), rgba(78, 226, 166, 0.35));
+}
+
+.bar.up {
+  background: linear-gradient(180deg, rgba(53, 196, 255, 0.95), rgba(53, 196, 255, 0.35));
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  background: rgba(12, 24, 35, 0.5);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.history-table th,
+.history-table td {
+  border-bottom: 1px solid rgba(90, 190, 255, 0.15);
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+}
+
+.history-table th {
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.diagnostics-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.diagnostic-card {
+  background: rgba(12, 24, 35, 0.75);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(90, 190, 255, 0.2);
+  padding: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.diagnostic-card h3 {
+  font-size: 0.86rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.diagnostic-card p {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.diagnostic-card strong {
+  color: var(--text);
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.mini-table th,
+.mini-table td {
+  text-align: left;
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid rgba(90, 190, 255, 0.15);
+}
+
+.mini-table th {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+}
+
+.band-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.tips-list {
+  margin-left: 1rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.3rem;
+}
+
 @keyframes float {
   0%,
   100% {
@@ -386,7 +599,19 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .center-row {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnostics-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -408,5 +633,9 @@ body {
   .meta-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
   }
 }
